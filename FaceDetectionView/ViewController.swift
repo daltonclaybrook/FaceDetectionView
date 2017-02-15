@@ -15,7 +15,7 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        let image = UIImage(named: "profile")!
+        let image = UIImage(named: "profile2")!
         faceDetectorView.configure(with: image)
     }
 }

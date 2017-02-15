@@ -23,16 +23,16 @@ class FaceDetector {
     }
     
     func syncDetectFaces(in image: UIImage) -> [CGRect] {
+        let imageSize = image.size
         guard let image = CIImage(image: image) else { return [] }
         
-        let context = CIContext()
         let detectorOptions = [ CIDetectorAccuracy : CIDetectorAccuracyHigh ]
-        let detector = CIDetector(ofType: CIDetectorTypeFace, context: context, options: detectorOptions)
+        let detector = CIDetector(ofType: CIDetectorTypeFace, context: nil, options: detectorOptions)
         
         let features = detector?.features(in: image)
         let rects = features?.flatMap { (feature: CIFeature) -> CGRect? in
             guard let feature = feature as? CIFaceFeature else { return nil }
-            return feature.bounds
+            return feature.bounds.applying(CGAffineTransform(scaleX: 1.0, y: -1.0)).offsetBy(dx: 0.0, dy: imageSize.height)
         } ?? []
         return rects
     }
