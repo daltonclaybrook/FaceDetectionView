@@ -26,8 +26,9 @@ class ViewController: UIViewController {
         let wideFrame = CGRect(x: 0.0, y: 100, width: UIApplication.shared.statusBarFrame.width, height: 230)
         DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
             UIView.animate(withDuration: 1.0, animations: { 
-                self.faceDetectorView.isZoomed = false
-                self.faceDetectorView.frame = wideFrame
+//                self.faceDetectorView.isZoomed = false
+//                self.faceDetectorView.frame = wideFrame
+                self.faceDetectorView.zoomPadding = 100.0
             })
         }
     }

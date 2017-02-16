@@ -11,26 +11,20 @@ import UIKit
 public final class FaceDetectionView: UIView {
     
     struct ZoomFrames {
+        let face: CGRect
         let zoomedIn: CGRect
         let zoomedOut: CGRect
     }
     
-    public var isZoomed = false {
-        didSet {
-            if oldValue != isZoomed {
-                updateZoomFramesIfNecessary()
-            }
-        }
-    }
+    // All four of the below properties are animatable.
     public var zoomPadding: CGFloat = 40.0 { didSet { updateZoomFramesIfNecessary() } }
+    public override var bounds: CGRect { didSet { updateZoomFramesIfNecessary() } }
+    public override var frame: CGRect { didSet { updateZoomFramesIfNecessary() } }
+    public var isZoomed = false { didSet { updateZoomFramesIfNecessary() } }
     
     private let imageView = UIImageView()
     private let detector = FaceDetector()
-    private var faceRect: CGRect?
     private var zoomFrames: ZoomFrames?
-    
-    public override var bounds: CGRect { didSet { updateZoomFramesIfNecessary() } }
-    public override var frame: CGRect { didSet { updateZoomFramesIfNecessary() } }
     
     //MARK: Initializers
     
@@ -50,15 +44,12 @@ public final class FaceDetectionView: UIView {
         reset()
         imageView.image = image
         detector.detectFaces(in: image) { [weak self] (faceRects) in
-            // if no faces detected, use the entire image for the face rect
-            let rect = faceRects.first ?? CGRect(x: 0, y: 0, width: image.size.width, height: image.size.height)
-            self?.configure(with: image, faceRect: rect)
+            self?.configure(with: image, faceRect: faceRects.first)
         }
     }
     
     public func reset() {
         zoomFrames = nil
-        faceRect = nil
         imageView.image = nil
         imageView.isHidden = true
     }
@@ -67,6 +58,7 @@ public final class FaceDetectionView: UIView {
     
     private func setupImageView() {
         clipsToBounds = true
+        imageView.backgroundColor = .clear
         imageView.isHidden = true
         imageView.contentMode = .scaleToFill
         if imageView.superview == nil {
@@ -75,21 +67,25 @@ public final class FaceDetectionView: UIView {
     }
     
     private func updateZoomFramesIfNecessary() {
-        guard let image = imageView.image, let faceRect = faceRect else { return }
+        guard let image = imageView.image, let faceRect = zoomFrames?.face else { return }
         configure(with: image, faceRect: faceRect)
     }
     
-    private func configure(with image: UIImage, faceRect: CGRect) {
+    private func configure(with image: UIImage, faceRect: CGRect?) {
+        imageView.isHidden = false
         let zoomedOutCenteredFrame = calculateZoomedOutFrame(with: image)
-        let convertedFaceRect = convertFaceRect(faceRect, toImageViewFrame: zoomedOutCenteredFrame, fromImage: image).applyingPadding(zoomPadding)
+        guard let faceRect = faceRect else {
+            imageView.frame = zoomedOutCenteredFrame
+            return
+        }
+        
+        let convertedFaceRect = convertFaceRect(faceRect, toImageViewFrame: zoomedOutCenteredFrame, fromImage: image).applyingPadding(zoomPadding).intersection(bounds)
         let zoomedOutAdjustedFrame = frameFromZoomedOutFrame(zoomedOutCenteredFrame, adjustedToShow: convertedFaceRect)
         let zoomedInFrame = zoomedFrameForImageView(withZoomedOutFrame: zoomedOutAdjustedFrame, faceRect: convertedFaceRect)
         
-        self.faceRect = faceRect
-        let zoomFrames = ZoomFrames(zoomedIn: zoomedInFrame.integral, zoomedOut: zoomedOutAdjustedFrame.integral)
+        let zoomFrames = ZoomFrames(face: faceRect, zoomedIn: zoomedInFrame.integral, zoomedOut: zoomedOutAdjustedFrame.integral)
         self.zoomFrames = zoomFrames
         imageView.frame = isZoomed ? zoomFrames.zoomedIn : zoomFrames.zoomedOut
-        imageView.isHidden = false
     }
     
     private func calculateZoomedOutFrame(with image: UIImage) -> CGRect {
