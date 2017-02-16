@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="11762" systemVersion="16D32" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="11762" systemVersion="16C68" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
     <device id="retina4_7" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
@@ -22,10 +22,10 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="nUt-dt-9L2" customClass="FaceDetectionView" customModule="FaceDetectionView" customModuleProvider="target">
-                                <rect key="frame" x="0.0" y="58.5" width="375" height="550"/>
+                                <rect key="frame" x="0.0" y="218.5" width="375" height="230"/>
                                 <color key="backgroundColor" red="0.78906750780000001" green="1" blue="0.79086963769999996" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                 <constraints>
-                                    <constraint firstAttribute="height" constant="550" id="QOf-Bj-TVr"/>
+                                    <constraint firstAttribute="height" constant="230" id="QOf-Bj-TVr"/>
                                 </constraints>
                             </view>
                         </subviews>
