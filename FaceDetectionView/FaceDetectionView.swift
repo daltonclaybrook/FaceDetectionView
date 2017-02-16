@@ -67,8 +67,8 @@ public final class FaceDetectionView: UIView {
     }
     
     private func updateZoomFramesIfNecessary() {
-        guard let image = imageView.image, let faceRect = zoomFrames?.face else { return }
-        configure(with: image, faceRect: faceRect)
+        guard !detector.isDetecting, let image = imageView.image else { return }
+        configure(with: image, faceRect: zoomFrames?.face)
     }
     
     private func configure(with image: UIImage, faceRect: CGRect?) {

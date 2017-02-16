@@ -12,11 +12,15 @@ import ImageIO
 
 class FaceDetector {
     typealias Completion = (_ faceRects: [CGRect]) -> ()
+    private(set) var isDetecting = false
     
     func detectFaces(in image: UIImage, completion: @escaping Completion) {
+        guard !isDetecting else { assertionFailure("FaceDetector is already detecting"); return }
+        isDetecting = true
         DispatchQueue.global(qos: .background).async {
             let faceRects = self.syncDetectFaces(in: image)
             DispatchQueue.main.async {
+                isDetecting = false
                 completion(faceRects)
             }
         }
