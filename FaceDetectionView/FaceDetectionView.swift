@@ -41,7 +41,7 @@ class FaceDetectionView: UIView {
     }
     
     func configure(with image: UIImage) {
-        setupViews()
+        setupViews(with: image)
         imageView.image = image
         detector.detectFaces(in: image) { [weak self] (faceRects) in
             self?.configure(with: image, faceRects: faceRects)
@@ -51,16 +51,16 @@ class FaceDetectionView: UIView {
     //MARK: Private
     
     private func setupDebugFaceView() {
-        addSubview(debugFaceView)
+        imageView.addSubview(debugFaceView)
         debugFaceView.isHidden = true
         debugFaceView.backgroundColor = .clear
         debugFaceView.layer.borderColor = UIColor.green.cgColor
         debugFaceView.layer.borderWidth = 4.0
     }
     
-    private func setupViews() {
+    private func setupViews(with image: UIImage) {
         clipsToBounds = true
-        imageView.contentMode = .scaleAspectFill
+        imageView.contentMode = .scaleToFill
         if imageView.superview == nil {
             insertSubview(imageView, at: 0)
         }
@@ -68,7 +68,19 @@ class FaceDetectionView: UIView {
         if case .zoomed(let frame) = zoomState {
             imageView.frame = frame
         } else {
-            imageView.frame = bounds
+            let imageRatio = image.size.width / image.size.height
+            let viewRatio = bounds.width / bounds.height
+            if imageRatio > viewRatio {
+                // hanging off left and right
+                let imageViewWidth = bounds.height * imageRatio
+                let xOffset = (bounds.width - imageViewWidth) / 2.0
+                imageView.frame = CGRect(x: xOffset, y: 0.0, width: imageViewWidth, height: bounds.height)
+            } else {
+                // hanging off top and bottom
+                let imageViewHeight = bounds.width * imageRatio
+                let yOffset = (bounds.height - imageViewHeight) / 2.0
+                imageView.frame = CGRect(x: 0.0, y: yOffset, width: bounds.width, height: imageViewHeight)
+            }
         }
     }
     
@@ -80,8 +92,8 @@ class FaceDetectionView: UIView {
     private func configure(with image: UIImage, faceRects: [CGRect]) {
         guard let rect = faceRects.first else { return }
         let convertedRect = convertRect(rect, toViewFrom: image).applyingPadding(zoomPadding)
-//        debugFaceView.frame = convertedRect
-//        debugFaceView.isHidden = false
+        debugFaceView.frame = convertedRect
+        debugFaceView.isHidden = false
         
         let zoomedFrame = zoomedFrameForImageView(with: convertedRect)
         UIView.animate(withDuration: 1.0) {
@@ -90,55 +102,43 @@ class FaceDetectionView: UIView {
     }
     
     private func convertRect(_ rect: CGRect, toViewFrom image: UIImage) -> CGRect {
-        let imageRatio = image.size.width / image.size.height
-        let viewRatio = bounds.width / bounds.height
-        
-        if imageRatio > viewRatio {
-            // hanging off left and right
-            let scale = bounds.height / image.size.height
-            let converted = rect.applying(CGAffineTransform(scaleX: scale, y: scale)).integral
-            let actualWidth = bounds.height * image.size.width / image.size.height
-            let xPadding = (actualWidth - bounds.width) / 2.0
-            return converted.offsetBy(dx: -xPadding, dy: 0.0)
-        } else {
-            // hanging off top and bottom
-            let scale = bounds.width / image.size.width
-            let converted = rect.applying(CGAffineTransform(scaleX: scale, y: scale)).integral
-            let actualHeigth = bounds.width * image.size.height / image.size.width
-            let yPadding = (actualHeigth - bounds.height) / 2.0
-            return converted.offsetBy(dx: 0.0, dy: -yPadding)
-        }
+        let scale = imageView.frame.width / image.size.width
+        let converted = rect.applying(CGAffineTransform(scaleX: scale, y: scale))
+        let rectInParent = convert(converted, from: imageView)
+        //TODO: offset image view even when the view is zoomed out if the face is offscreen.
+        return converted
     }
     
     private func zoomedFrameForImageView(with faceRect: CGRect) -> CGRect {
-        let faceRatio = faceRect.width / faceRect.height
+        let convertedRect = convert(faceRect, from: imageView)
+        let faceRatio = convertedRect.width / convertedRect.height
         let viewRatio = bounds.width / bounds.height
         var zoomedRect = bounds
         
         if faceRatio > viewRatio {
             // pin left and right to view
-            let zoomScale = bounds.width / faceRect.width
-            let faceRectZoomedHeight = faceRect.height * zoomScale
-            let xOffset = (faceRect.minX * zoomScale) * -1.0
+            let zoomScale = bounds.width / convertedRect.width
+            let faceRectZoomedHeight = convertedRect.height * zoomScale
+            let xOffset = (convertedRect.minX * zoomScale) * -1.0
             
             // space between the top of the screen and the top edge of the face rect
             let yPadding = (bounds.height - faceRectZoomedHeight) / 2.0
             
             // space between the top of the image view and the top edge of the face rect, minus the xPadding.
-            let yOffset = (faceRect.minY * zoomScale - yPadding) * -1.0
+            let yOffset = (convertedRect.minY * zoomScale - yPadding) * -1.0
             
             zoomedRect = CGRect(x: xOffset, y: yOffset, width: bounds.width * zoomScale, height: bounds.height * zoomScale)
         } else {
             // pin top and bottom to view
-            let zoomScale = bounds.height / faceRect.height
-            let faceRectZoomedWidth = faceRect.width * zoomScale
-            let yOffset = (faceRect.minY * zoomScale) * -1.0
+            let zoomScale = bounds.height / convertedRect.height
+            let faceRectZoomedWidth = convertedRect.width * zoomScale
+            let yOffset = (convertedRect.minY * zoomScale) * -1.0
             
             // space between the left side of the screen and the left edge of the face rect
             let xPadding = (bounds.width - faceRectZoomedWidth) / 2.0
             
             // space between the left side of the image view and the left edge of the face rect, minus the xPadding.
-            let xOffset = (faceRect.minX * zoomScale - xPadding) * -1.0
+            let xOffset = (convertedRect.minX * zoomScale - xPadding) * -1.0
             
             zoomedRect = CGRect(x: xOffset, y: yOffset, width: bounds.width * zoomScale, height: bounds.height * zoomScale)
         }
