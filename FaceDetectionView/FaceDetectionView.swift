@@ -15,15 +15,22 @@ public final class FaceDetectionView: UIView {
         let zoomedOut: CGRect
     }
     
-    private(set) public var isZoomed = true
-    public var zoomPadding: CGFloat = 40.0 { didSet { configureIfNecessary() } }
+    public var isZoomed = false {
+        didSet {
+            if oldValue != isZoomed {
+                updateZoomFramesIfNecessary()
+            }
+        }
+    }
+    public var zoomPadding: CGFloat = 40.0 { didSet { updateZoomFramesIfNecessary() } }
     
     private let imageView = UIImageView()
     private let detector = FaceDetector()
     private var faceRect: CGRect?
     private var zoomFrames: ZoomFrames?
     
-    override public var bounds: CGRect { didSet { configureIfNecessary() } }
+    public override var bounds: CGRect { didSet { updateZoomFramesIfNecessary() } }
+    public override var frame: CGRect { didSet { updateZoomFramesIfNecessary() } }
     
     //MARK: Initializers
     
@@ -38,10 +45,6 @@ public final class FaceDetectionView: UIView {
     }
     
     //MARK: Public
-    
-    func setIsZoomed(_ zoomed: Bool, animated: Bool) {
-        //TODO
-    }
     
     public func configure(with image: UIImage) {
         reset()
@@ -71,9 +74,9 @@ public final class FaceDetectionView: UIView {
         }
     }
     
-    private func configureIfNecessary() {
-        guard let image = imageView.image else { return }
-        configure(with: image)
+    private func updateZoomFramesIfNecessary() {
+        guard let image = imageView.image, let faceRect = faceRect else { return }
+        configure(with: image, faceRect: faceRect)
     }
     
     private func configure(with image: UIImage, faceRect: CGRect) {
