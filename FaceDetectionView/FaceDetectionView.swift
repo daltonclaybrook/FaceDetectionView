@@ -17,7 +17,7 @@ public final class FaceDetectionView: UIView {
     }
     
     // All four of the below properties are animatable.
-    public var zoomPadding: CGFloat = 40.0 { didSet { updateZoomFramesIfNecessary() } }
+    public var zoomPadding: CGFloat = 26.0 { didSet { updateZoomFramesIfNecessary() } }
     public override var bounds: CGRect { didSet { updateZoomFramesIfNecessary() } }
     public override var frame: CGRect { didSet { updateZoomFramesIfNecessary() } }
     public var isZoomed = false { didSet { updateZoomFramesIfNecessary() } }
