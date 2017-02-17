@@ -79,7 +79,9 @@ public final class FaceDetectionView: UIView {
             return
         }
         
-        let convertedFaceRect = convertFaceRect(faceRect, toImageViewFrame: zoomedOutCenteredFrame, fromImage: image).applyingPadding(zoomPadding).intersection(bounds)
+        var convertedFaceRect = convertFaceRect(faceRect, toImageViewFrame: zoomedOutCenteredFrame, fromImage: image).applyingPadding(zoomPadding)
+        convertedFaceRect = convertedFaceRect.intersection(CGRect(origin: .zero, size: zoomedOutCenteredFrame.size))
+        
         let zoomedOutAdjustedFrame = frameFromZoomedOutFrame(zoomedOutCenteredFrame, adjustedToShow: convertedFaceRect)
         let zoomedInFrame = zoomedFrameForImageView(withZoomedOutFrame: zoomedOutAdjustedFrame, faceRect: convertedFaceRect)
         

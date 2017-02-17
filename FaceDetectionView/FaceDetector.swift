@@ -20,7 +20,7 @@ class FaceDetector {
         DispatchQueue.global(qos: .background).async {
             let faceRects = self.syncDetectFaces(in: image)
             DispatchQueue.main.async {
-                isDetecting = false
+                self.isDetecting = false
                 completion(faceRects)
             }
         }
